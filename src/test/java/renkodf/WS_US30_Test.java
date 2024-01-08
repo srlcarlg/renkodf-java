@@ -31,7 +31,7 @@ class WS_US30_Test {
 	void RenkoJava_ShouldBeStrictlyEqual_RenkoPy (String mode) {
 		List<OHLCV> renkoMap = new ArrayList<>();
 		
-		// First Tick "onOpen"
+		// First Tick "onOpen" or first data "onMessage"
 		OHLCV firstTick = rawTicks.get(0);
 		RenkoWS r = new RenkoWS(firstTick.getDatetime(), firstTick.getClose(), 5D);
 		

@@ -9,6 +9,9 @@ import java.util.logging.Logger;
 import renkodf.wrappers.OHLCV;
 import renkodf.wrappers.RSD;
 
+/**
+ * Create Renko OHLCV with existing Ticks data.
+ */
 public class Renko {
 
 	private List<RSD> rsd = new ArrayList<>();
@@ -21,8 +24,26 @@ public class Renko {
 	private final Logger logger = Logger.getLogger(getClass().getName());
 	private static final List<String> MODE_LIST = List.of("normal","wicks", "nongap",
 			"reverse-wicks", "reverse-nongap", "fake-r-wicks", "fake-r-nongap");
-
-	public Renko (List<OHLCV> dfList, Double brickSize) {
+	/**
+	 * Create Renko OHLCV with existing Ticks data.
+	 * <h3>Usage</h3>
+	 * <code>
+	 * 	import renkodf.Renko; <br>
+	 * 	import renkodf.wrappers.OHLCV; <br> <br>
+	 * 
+	 * 	Renko r = Renko(dfList, brickSize); <br>
+	 * 	List(OHLCV) df = r.renkodf("wicks");
+	 * </code>
+	 * 
+	 * @param dfList
+	 * 	Only two fields of OHLCV data are required: <br>
+	 * 	<ul>
+	 * 		<li>Close: Double</li>
+	 * 		<li>Datetime: Object</li>
+	 * 	</ul>
+	 * @param brickSize Cannot be less than or equal to 0.00000...
+	 */
+	public Renko(List<OHLCV> dfList, Double brickSize) {
 
 		Double firstClose = dfList.get(0).getClose();
 		Double initialPrice = (Math.floor(firstClose/brickSize)) * brickSize;
@@ -40,7 +61,13 @@ public class Renko {
         	addPrices(i, dfList);
 		}
 	}
-	
+	/**
+	 * Determine if there are new bricks to add according to the current (loop) price relative to the previous renko. <br>
+	 * Here, the 'Renko Single Data' is constructed.
+	 * @param i index of Ticks Data
+	 * @param dfList Ticks data
+	 * @return <strong>primitive boolean</strong> just to simulate the 'continue' loop statement;
+	 */
 	private boolean addPrices(Integer i, List<OHLCV> dfList) {
 
 		Double dfClose = dfList.get(i).getClose();
@@ -81,7 +108,9 @@ public class Renko {
 
         return true;
 	}
+	
 	private void addBrickLoop(Integer i, Object dfDatetime, Integer renkoMultiply, Double currentDirection, Double currentNumberBricks) {
+		
 		// Need update value because of 'same direction' inner loop
 		Double lastPrice = rsd.get(rsd.size()-1).getPrice();
         Double renkoPrice = lastPrice + (currentDirection * renkoMultiply * brickSize);
@@ -94,7 +123,32 @@ public class Renko {
         wickMinInLoop = currentNumberBricks > 0 ? renkoPrice : wickMinInLoop;
         wickMaxInLoop = currentNumberBricks < 0 ? renkoPrice : wickMaxInLoop;
 	}
-
+	/**
+	 * Transforms 'Renko Single Data' into OHLCV List. <br>
+	 * @param mode The method for building the Renko List, <br>
+	 * there are 7 modes available, where 3 are significant variations:
+	 *
+	 * 	<ul>
+	 * 		<li><strong>
+	 * 		  "normal"</strong>: Standard Renko.</li>
+	 * 		<li><strong>
+	 * 		  "wicks"</strong>: Standard Renko with Wicks.</li>
+	 * 		<li><strong>
+	 * 		  "nongap"</strong>: Same logic of 'wicks' mode but <br>
+	 * 			the OPEN will have the same value as the respective wick.</li>
+	 * 		<li><strong>
+	 * 		  "reverse-wicks"</strong>: 'wicks' only on price reversals.</li>
+	 * 		<li><strong>
+	 * 		  "reverse-nongap"</strong>: 'nongap' only in price reversals.</li>
+	 * 		<li><strong>
+	 * 		  "fake-r-wicks"</strong>: fake reverse wicks, <br>
+	 *  		where it will have the same value as the Previous Close.</li>
+	 * 		<li><strong>
+	 *  	  "fake-r-nongap"</strong>: fake reverse nongap, <br>
+	 * 			where it will have the same value as the Previous Close.</li>
+	 * 	</ul>
+	 * @return List of OHLCV
+	 */
 	public List<OHLCV> renkodf(String mode) {
 		
 		String msg = String.format("Mode: \"%s\" does not exist, using \"normal\" instead", mode);

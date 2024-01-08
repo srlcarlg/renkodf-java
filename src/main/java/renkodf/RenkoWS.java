@@ -10,7 +10,9 @@ import java.util.stream.Stream;
 
 import renkodf.wrappers.OHLCV;
 import renkodf.wrappers.WSRSD;
-
+/**
+ *	Create real-time Renko OHLCV Data, usually over a WebSocket connection.
+ */
 public class RenkoWS {
 
 	private List<WSRSD> rsd = new ArrayList<>();
@@ -27,8 +29,24 @@ public class RenkoWS {
 	private final Logger logger = Logger.getLogger(getClass().getName());
 	private static final List<String> MODE_LIST = List.of("normal","wicks", "nongap",
 			"reverse-wicks", "reverse-nongap", "fake-r-wicks", "fake-r-nongap");
-
-	public RenkoWS (Object date, Double price, Double brickSize) {
+	/**
+	 * 
+	 * <h3>Usage</h3>
+	 * <code>
+	 * 	import renkodf.RenkoWS; <br>
+	 * 	import renkodf.wrappers.OHLCV; <br> <br>
+	 * 
+	 * 	RenkoWS r = RenkoWS(date, price, brickSize); <br> <br>
+	 * 	// At every price change <br>
+	 * 	r.add_prices(date, price) <br>
+ 	 * 	List(OHLCV) df = r.renko_animate("wicks");
+	 * </code>
+	 * 
+	 * @param date Object
+	 * @param price Double
+	 * @param brickSize Cannot be less than or equal to 0.00000...
+	 */
+	public RenkoWS(Object date, Double price, Double brickSize) {
 
 		Double initialPrice = (Math.floor(price/brickSize)) * brickSize;
 		// Renko Single Data
@@ -43,7 +61,15 @@ public class RenkoWS {
         wickMaxInLoop = initialPrice;
         volumeInLoop = 1D;
 	}
-	
+	/**
+	 * Determine if there are new bricks to add according to the current price relative to the previous renko. <br>
+	 * <strong> Must be called at every price change. </strong> <br>
+	 * Here, the 'Renko Single Data' is constructed.
+	 * 
+	 * @param date Object
+	 * @param price Double
+	 * @return <strong>primitive boolean</strong> "true" if there is a new renko, otherwise "false";
+	 */
 	public boolean addPrices(Object date, Double price) {
 		wsDate = date;
 		wsPrice = price;
@@ -83,6 +109,7 @@ public class RenkoWS {
 
         return true;
 	}
+	
 	private void addBrickLoop(Object date, Integer renkoMultiply,  Double currentDirection, Double currentNumberBricks) {
 		
 		// Need update value because of 'same direction' inner loop
@@ -97,7 +124,11 @@ public class RenkoWS {
         wickMinInLoop = currentNumberBricks > 0 ? renkoPrice : wickMinInLoop;
         wickMaxInLoop = currentNumberBricks < 0 ? renkoPrice : wickMaxInLoop;
 	}
-
+	/**
+	 * Transforms 'Renko Single Data' into OHLCV List.
+	 * @param mode
+	 * @return
+	 */
 	private List<OHLCV> renkodf(String mode) {
 		
 		String msg = String.format("Mode: \"%s\" does not exist, using \"normal\" instead", mode);
@@ -199,7 +230,12 @@ public class RenkoWS {
 
         return renkoList;
 	}
-	
+	/**
+	 * Should be called after 'RenkoWS.addPrices(date, price)'
+	 * 
+	 * @param mode The method for building the Renko List, described in the Renko.renkodf().
+	 * @return List of OHLCV with Forming Renko
+	 */
 	public List<OHLCV> renkoAnimate(String mode) {
 		
 		List<OHLCV> renkodf = renkodf(mode);
