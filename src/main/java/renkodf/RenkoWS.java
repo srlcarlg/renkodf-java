@@ -9,18 +9,18 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import renkodf.wrappers.OHLCV;
-import renkodf.wrappers.WSRSD;
+import renkodf.wrappers.RSD;
 /**
  *	Create real-time Renko OHLCV Data, usually over a WebSocket connection.
  */
 public class RenkoWS {
 
-	private List<WSRSD> rsd = new ArrayList<>();
+	private List<RSD> rsd = new ArrayList<>();
 	private Double brickSize;
 	
     private Object wsDate;
     private Double wsPrice;
-    private OHLCV wsInitialOHLCV;
+    private List<OHLCV> wsInitialOHLCV;
     
 	private Double wickMinInLoop;
 	private Double wickMaxInLoop;
@@ -50,17 +50,18 @@ public class RenkoWS {
 
 		Double initialPrice = (Math.floor(price/brickSize)) * brickSize;
 		// Renko Single Data
-		rsd.add(new WSRSD(date, initialPrice, 0D, initialPrice, 1D));
+		rsd.add(new RSD(date, initialPrice, 0D, initialPrice, 1D));
 
 		this.brickSize = brickSize;
 		wsDate = date;
 		wsPrice = price;
-		wsInitialOHLCV = new OHLCV(date, price);
+		wsInitialOHLCV = List.of(new OHLCV(date, price));
 		
         wickMinInLoop = initialPrice;
         wickMaxInLoop = initialPrice;
         volumeInLoop = 1D;
 	}
+	
 	/**
 	 * Determine if there are new bricks to add according to the current price relative to the previous renko. <br>
 	 * <strong> Must be called at every price change. </strong> <br>
@@ -117,13 +118,14 @@ public class RenkoWS {
         Double renkoPrice = lastPrice + (currentDirection * renkoMultiply * brickSize);
         Double wick = currentNumberBricks > 0 ? wickMinInLoop  : wickMaxInLoop;
         
-        rsd.add(new WSRSD(date, renkoPrice, currentDirection, wick, volumeInLoop));
+        rsd.add(new RSD(date, renkoPrice, currentDirection, wick, volumeInLoop));
         
         // Reset
         volumeInLoop = 1D;
         wickMinInLoop = currentNumberBricks > 0 ? renkoPrice : wickMinInLoop;
         wickMaxInLoop = currentNumberBricks < 0 ? renkoPrice : wickMaxInLoop;
 	}
+	
 	/**
 	 * Transforms 'Renko Single Data' into OHLCV List.
 	 * @param mode
@@ -243,16 +245,16 @@ public class RenkoWS {
 		
 		renkoList.add(new OHLCV(wsDate, wsPrice, volumeInLoop));
 
-		if (renkodf.isEmpty()) {
-			renkoList.set(0, wsInitialOHLCV);
+		if (renkodf.isEmpty()) {			
+			OHLCV lastRenko = wsInitialOHLCV.get(wsInitialOHLCV.size()-1);
 			
-			OHLCV toAdd = new OHLCV(wsDate, wsPrice, volumeInLoop);
-			toAdd.setOpen(wsInitialOHLCV.getClose());
-			toAdd.setHigh(wickMaxInLoop);
-			toAdd.setLow(wickMinInLoop);
+			OHLCV toSet = new OHLCV(wsDate, wsPrice, volumeInLoop);
+			toSet.setOpen(lastRenko.getClose());
+			toSet.setHigh(wickMaxInLoop);
+			toSet.setLow(wickMinInLoop);
 			
-			renkoList.add(toAdd);
-            return renkoList;
+			renkoList.set(0, toSet);
+	        return Stream.of(wsInitialOHLCV, renkoList).flatMap(List::stream).collect(Collectors.toList());
 		}
 
         Integer lastIndex = renkoList.size()-1;

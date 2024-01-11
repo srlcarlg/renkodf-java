@@ -20,6 +20,15 @@ public class RSD {
 		this.wick = wick;
 		this.volume = volume;
 	}
+	public RSD(Object date, Double price, Double direction, Double wick, Double volume) {
+		super();
+		this.originalIndex = null;
+		this.date = date;
+		this.price = price;
+		this.direction = direction;
+		this.wick = wick;
+		this.volume = volume;
+	}
 	
 	public Integer getOriginalIndex() {
 		return originalIndex;
