@@ -31,11 +31,13 @@ public class Renko {
 	 * 	import renkodf.Renko; <br>
 	 * 	import renkodf.wrappers.OHLCV; <br> <br>
 	 * 
-	 * 	Renko r = Renko(dfList, brickSize); <br>
-	 * 	List(OHLCV) df = r.renkodf("wicks");
+	 *	List(OHLCV) ticksList = new ArrayList<>(); <br> <br>
+	 *
+	 * 	Renko r = Renko(ticksList, brickSize); <br>
+	 * 	List(OHLCV) renkoList = r.renkodf("wicks");
 	 * </code>
 	 * 
-	 * @param dfList
+	 * @param ticksList
 	 * 	Only two fields of OHLCV data are required: <br>
 	 * 	<ul>
 	 * 		<li>Close: Double</li>
@@ -43,42 +45,42 @@ public class Renko {
 	 * 	</ul>
 	 * @param brickSize Cannot be less than or equal to 0.00000...
 	 */
-	public Renko(List<OHLCV> dfList, Double brickSize) {
+	public Renko(List<OHLCV> ticksList, Double brickSize) {
 
-		Double firstClose = dfList.get(0).getClose();
+		Double firstClose = ticksList.get(0).getClose();
 		Double initialPrice = (Math.floor(firstClose/brickSize)) * brickSize;
 		
 		// Renko Single Data
-		rsd.add(new RSD(0, dfList.get(0).getDatetime(), initialPrice, 0D, initialPrice, 1D));
+		rsd.add(new RSD(0, ticksList.get(0).getDatetime(), initialPrice, 0D, initialPrice, 1D));
 
 		this.brickSize = brickSize;
         wickMinInLoop = initialPrice;
         wickMaxInLoop = initialPrice;
         volumeInLoop = 1D;
         
-        Integer dfSize = dfList.size();
-        for (int i = 1; i < dfSize; i++) {
-        	addPrices(i, dfList);
+        Integer listSize = ticksList.size();
+        for (int i = 1; i < listSize; i++) {
+        	addPrices(i, ticksList);
 		}
 	}
 	/**
 	 * Determine if there are new bricks to add according to the current (loop) price relative to the previous renko. <br>
 	 * Here, the 'Renko Single Data' is constructed.
 	 * @param i index of Ticks Data
-	 * @param dfList Ticks data
+	 * @param ticksList Ticks data
 	 * @return <strong>primitive boolean</strong> just to simulate the 'continue' loop statement;
 	 */
-	private boolean addPrices(Integer i, List<OHLCV> dfList) {
+	private boolean addPrices(Integer i, List<OHLCV> ticksList) {
 
-		Double dfClose = dfList.get(i).getClose();
-		Object dfDatetime = dfList.get(i).getDatetime();
+		Double tickClose = ticksList.get(i).getClose();
+		Object tickDatetime = ticksList.get(i).getDatetime();
 
-		wickMinInLoop = dfClose.compareTo(wickMinInLoop) < 0 ? dfClose : wickMinInLoop;
-		wickMaxInLoop = dfClose.compareTo(wickMaxInLoop) > 0 ? dfClose : wickMaxInLoop;
+		wickMinInLoop = tickClose.compareTo(wickMinInLoop) < 0 ? tickClose : wickMinInLoop;
+		wickMaxInLoop = tickClose.compareTo(wickMaxInLoop) > 0 ? tickClose : wickMaxInLoop;
 		volumeInLoop += 1D;
 
 		Double lastPrice = rsd.get(rsd.size()-1).getPrice();
-		Double currentNumberBricks = (dfClose - lastPrice) / brickSize;
+		Double currentNumberBricks = (tickClose - lastPrice) / brickSize;
 		Double currentDirection = Math.signum(currentNumberBricks);
 		if (currentDirection == 0) {
         	return false;
@@ -97,26 +99,26 @@ public class Renko {
 		 *	- Only the first brick will be kept. (the reason of '2' multiply) 
 		 */
         if (!isSameDirection && Math.abs(currentNumberBricks) >= 2) {
-        	addBrickLoop(i, dfDatetime, 2, currentDirection, currentNumberBricks);
+        	addBrickLoop(i, tickDatetime, 2, currentDirection, currentNumberBricks);
         	totalSameBricks =  currentNumberBricks - (2 * currentDirection);
         }
         
         // Add all bricks in the same direction
         for (int noUse = 0; noUse < Math.abs(totalSameBricks.intValue()); noUse++) {
-        	addBrickLoop(i, dfDatetime, 1, currentDirection, currentNumberBricks);
+        	addBrickLoop(i, tickDatetime, 1, currentDirection, currentNumberBricks);
 		}
 
         return true;
 	}
 	
-	private void addBrickLoop(Integer i, Object dfDatetime, Integer renkoMultiply, Double currentDirection, Double currentNumberBricks) {
+	private void addBrickLoop(Integer i, Object tickDatetime, Integer renkoMultiply, Double currentDirection, Double currentNumberBricks) {
 		
 		// Need update value because of 'same direction' inner loop
 		Double lastPrice = rsd.get(rsd.size()-1).getPrice();
         Double renkoPrice = lastPrice + (currentDirection * renkoMultiply * brickSize);
         Double wick = currentNumberBricks > 0 ? wickMinInLoop  : wickMaxInLoop;
         
-        rsd.add(new RSD(i, dfDatetime, renkoPrice, currentDirection, wick, volumeInLoop));
+        rsd.add(new RSD(i, tickDatetime, renkoPrice, currentDirection, wick, volumeInLoop));
         
         // Reset
         volumeInLoop = 1D;

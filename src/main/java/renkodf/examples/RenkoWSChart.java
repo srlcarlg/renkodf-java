@@ -31,7 +31,7 @@ public class RenkoWSChart implements ExampleChart<OHLCChart> {
 		}
 	}
 
-	private void loop() throws InterruptedException {
+	public void loop() throws InterruptedException {
 		final SwingWrapper<OHLCChart> swingWrapper = new SwingWrapper<>(this.getChart());
 		swingWrapper.displayChart();
 
@@ -53,7 +53,7 @@ public class RenkoWSChart implements ExampleChart<OHLCChart> {
 	public OHLCChart getChart() {
 		// Create Chart
 		ohlcChart = new OHLCChartBuilder().width(800).height(600)
-				.title("Real-time Prices Chart")
+				.title("US30 Real-time Chart")
 				.theme(ChartTheme.Matlab).build();
 
 		// Customize Chart

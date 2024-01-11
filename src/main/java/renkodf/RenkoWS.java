@@ -39,7 +39,7 @@ public class RenkoWS {
 	 * 	RenkoWS r = RenkoWS(date, price, brickSize); <br> <br>
 	 * 	// At every price change <br>
 	 * 	r.add_prices(date, price) <br>
- 	 * 	List(OHLCV) df = r.renko_animate("wicks");
+ 	 * 	List(OHLCV) renkoList = r.renko_animate("wicks");
 	 * </code>
 	 * 
 	 * @param date Object
