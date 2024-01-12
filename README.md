@@ -2,7 +2,7 @@
 Transform Tick Data into OHLCV Renko! <br>
 **Java Implementation of [renkodf](https://github.com/srlcarlg/renkodf)**
 
-  -  |  -  |  -
+  --  |  --  |  --
 :-------------------------:|:-------------------------:|:-------------------------:
 ![frontend](./readme_files/normal.gif)  |  ![docs](./readme_files/wicks.gif) |  ![docs](./readme_files/nongap.gif)
 
