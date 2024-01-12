@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import renkodf.wrappers.OHLCV;
 import renkodf.wrappers.RSD;
@@ -63,6 +64,7 @@ public class Renko {
         	addPrices(i, ticksList);
 		}
 	}
+	
 	/**
 	 * Determine if there are new bricks to add according to the current (loop) price relative to the previous renko. <br>
 	 * Here, the 'Renko Single Data' is constructed.
@@ -125,6 +127,19 @@ public class Renko {
         wickMinInLoop = currentNumberBricks > 0 ? renkoPrice : wickMinInLoop;
         wickMaxInLoop = currentNumberBricks < 0 ? renkoPrice : wickMaxInLoop;
 	}
+	
+	public List<RSD> getRSD(Integer maxSize) {
+		if(maxSize != null) {
+			if (maxSize > 0) {
+				return rsd.stream().limit(maxSize).collect(Collectors.toList());
+			} else {
+				return rsd.subList(Math.max(rsd.size() - maxSize, 0), rsd.size());
+			}
+		} else {
+			return rsd;
+		}
+	}
+	
 	/**
 	 * Transforms 'Renko Single Data' into OHLCV List. <br>
 	 * @param mode The method for building the Renko List, <br>

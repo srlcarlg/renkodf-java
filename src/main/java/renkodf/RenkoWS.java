@@ -62,6 +62,24 @@ public class RenkoWS {
         volumeInLoop = 1D;
 	}
 	
+	public RenkoWS(List<RSD> externalRSD, Double brickSize) {
+		rsd = externalRSD;
+
+		this.brickSize = brickSize;
+		wsInitialOHLCV = this.renkodf("normal");
+		
+		RSD lastRenko = externalRSD.get(externalRSD.size()-1);
+		wsDate = lastRenko.getDate();
+		wsPrice = lastRenko.getPrice();
+        wickMinInLoop = lastRenko.getPrice();
+        wickMaxInLoop = lastRenko.getPrice();
+        volumeInLoop = 1D;
+	}
+	
+	public List<OHLCV> initialLists(String mode) {
+		return this.renkodf(mode);
+	}
+	
 	/**
 	 * Determine if there are new bricks to add according to the current price relative to the previous renko. <br>
 	 * <strong> Must be called at every price change. </strong> <br>
@@ -255,6 +273,8 @@ public class RenkoWS {
 			
 			renkoList.set(0, toSet);
 	        return Stream.of(wsInitialOHLCV, renkoList).flatMap(List::stream).collect(Collectors.toList());
+		} else {
+			wsInitialOHLCV.clear();
 		}
 
         Integer lastIndex = renkoList.size()-1;
