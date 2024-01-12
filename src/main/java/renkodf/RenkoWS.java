@@ -64,10 +64,7 @@ public class RenkoWS {
 	
 	public RenkoWS(List<RSD> externalRSD, Double brickSize) {
 		rsd = externalRSD;
-
-		this.brickSize = brickSize;
-		wsInitialOHLCV = this.renkodf("normal");
-		
+		this.brickSize = brickSize;		
 		RSD lastRenko = externalRSD.get(externalRSD.size()-1);
 		wsDate = lastRenko.getDate();
 		wsPrice = lastRenko.getPrice();
@@ -273,8 +270,6 @@ public class RenkoWS {
 			
 			renkoList.set(0, toSet);
 	        return Stream.of(wsInitialOHLCV, renkoList).flatMap(List::stream).collect(Collectors.toList());
-		} else {
-			wsInitialOHLCV.clear();
 		}
 
         Integer lastIndex = renkoList.size()-1;
