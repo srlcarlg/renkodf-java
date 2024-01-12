@@ -14,6 +14,9 @@ import renkodf.RenkoWS;
 import renkodf.examples.interfaces.ExampleChart;
 import renkodf.wrappers.OHLCV;
 
+/**
+ * "ws_externaldf_demo.py" equivalent
+ */
 public class ExternalWSChart implements ExampleChart<OHLCChart> {
 
 	public static final String SERIES_NAME = "series1";

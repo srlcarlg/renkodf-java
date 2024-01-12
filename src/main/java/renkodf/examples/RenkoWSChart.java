@@ -12,7 +12,9 @@ import org.knowm.xchart.style.Styler.ChartTheme;
 import renkodf.RenkoWS;
 import renkodf.examples.interfaces.ExampleChart;
 import renkodf.wrappers.OHLCV;
-
+/**
+ * "ws_animchart_demo.py" equivalent
+ */
 public class RenkoWSChart implements ExampleChart<OHLCChart> {
 
 	public static final String SERIES_NAME = "series1";
