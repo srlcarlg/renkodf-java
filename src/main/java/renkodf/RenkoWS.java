@@ -20,7 +20,7 @@ public class RenkoWS {
 	
     private Object wsDate;
     private Double wsPrice;
-    private List<OHLCV> wsInitialOHLCV;
+    private OHLCV wsInitialOHLCV;
     
 	private Double wickMinInLoop;
 	private Double wickMaxInLoop;
@@ -55,7 +55,7 @@ public class RenkoWS {
 		this.brickSize = brickSize;
 		wsDate = date;
 		wsPrice = price;
-		wsInitialOHLCV = List.of(new OHLCV(date, price));
+		wsInitialOHLCV = new OHLCV(date, price);
 		
         wickMinInLoop = initialPrice;
         wickMaxInLoop = initialPrice;
@@ -261,15 +261,15 @@ public class RenkoWS {
 		renkoList.add(new OHLCV(wsDate, wsPrice, volumeInLoop));
 
 		if (renkodf.isEmpty()) {			
-			OHLCV lastRenko = wsInitialOHLCV.get(wsInitialOHLCV.size()-1);
+			renkoList.set(0, wsInitialOHLCV);
 			
-			OHLCV toSet = new OHLCV(wsDate, wsPrice, volumeInLoop);
-			toSet.setOpen(lastRenko.getClose());
-			toSet.setHigh(wickMaxInLoop);
-			toSet.setLow(wickMinInLoop);
+			OHLCV toAdd = new OHLCV(wsDate, wsPrice, volumeInLoop);
+			toAdd.setOpen(wsInitialOHLCV.getClose());
+			toAdd.setHigh(wickMaxInLoop);
+			toAdd.setLow(wickMinInLoop);
 			
-			renkoList.set(0, toSet);
-	        return Stream.of(wsInitialOHLCV, renkoList).flatMap(List::stream).collect(Collectors.toList());
+			renkoList.add(toAdd);
+            return renkoList;
 		}
 
         Integer lastIndex = renkoList.size()-1;
